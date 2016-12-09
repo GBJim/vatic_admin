@@ -7,9 +7,8 @@
   <link  rel= "stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/css/tether-theme-arrows-dark.css"</script>
   <script  src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
   crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" ></script>
-
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+ <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
   <script src="static/index.js"></script>
 
 
@@ -29,7 +28,7 @@
         <option value="/?video_name={{video}}">{{video}}</option>
       {% endfor %}
     </select>
-    <a href="update"><button type="button" class="btn btn-primary">Update Annotations</button></a>
+    <a href="update"><button type="button" class="btn btn-primary">Update <span class="glyphicon glyphicon-repeat"></button></a>
   </div>
 
 
@@ -38,20 +37,65 @@
    <div class="col-md-7">
   <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}   style="float:left" >
      </div>
-     <div id ="target-links" class="col-md-3" style="text-align:left;">
-       <h3 id='frame-num'><strong>{{frame_num}}</strong></h3>	
+     <div  class="col-md-3" style="text-align:left;">
+       <h3 ><strong id='frame-num'>{{frame_num}}</strong></h3>
        <br>
 
-       <ul class="list-group">
+       <ul id ="target-links" class="list-group">
        {% for user, link in target_links %}
-       <li class="list-group-item"><a href={{link}}><h4>{{user}}'s Segement</h4></a></li>
+       <li class="list-group-item"><a href={{link}}><h4>{{user}}'s Segment</h4></a></li>
        {% endfor %}
        </ul>
   </div>
 
 </div>
-<a id="next-button"><button class="btn btn-primary"> Next <span class="glyphicon glyphicon-forward"></span></button></a>
-<a id="previous-button"><button class="btn btn-danger"> Previous <span class="glyphicon glyphicon-backward"></span></button></a>
-<p id="alert-info">{{alert}}</p>
+<div class="row">
+<div class="col-md-2">
+<a id="next-button"><button class="btn btn-primary"> Next <span class="glyphicon glyphicon-arrow-right"></span></button></a>
+<a id="previous-button"><button class="btn btn-success"> Previous <span class="glyphicon glyphicon-arrow-left"></span></button></a>
+</div>
+<div class="col-md-3">
+<a id="play-button"><button class="btn btn-danger"> Play <span class="glyphicon glyphicon-play"></span></button></a>
+<a id="stop-button"><button class="btn btn-warning"> Pause <span class="glyphicon glyphicon-pause"></span></button></a>
+<a id="rewind-button"><button class="btn btn-info"> Rewind <span class="glyphicon glyphicon-backward"></span></button></a>
+
+</div>
+</div>
+<div id="alert-info">
+
+  <div id="wrong_number" class="col-md-2">
+  {% if "wrong_number" in alert %}
+
+      <h4>Wrong Number:</h4>
+      <ul id="w-list" class="list-group">
+      {% for user in alert["wrong_number"] %}
+        <li class="list-group-item">
+
+          <span class="badge">{{alert["wrong_number"][user]}}</span>
+          {{user}}
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+  <div id="isolation" class="col-md-2">
+  {% if "isolation" in alert %}
+
+      <h4>Isolation:</h4>
+      <ul id="i-list" class="list-group">
+      {% for user in alert["isolation"] %}
+        <li class="list-group-item">
+
+          <span class="badge">{{alert["isolation"]|length}}</span>
+          {{user}}
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+
+
+</div>
 </body>
 </html>
