@@ -2,6 +2,8 @@ import os
 from subprocess import check_output, call
 from flask import Flask, render_template, make_response, request, render_template_string, jsonify, redirect
 from scipy.misc import imread
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 import uuid
 from bbox_comparator import get_alert
@@ -326,12 +328,16 @@ def get_assignments(user_map):
     return assignments
 
 if __name__ == "__main__":
-    CONTAINER_NAME = "naughty_minsky"
+    CONTAINER_NAME = "angry_hawking"
     K_FRAME = 322
-    VATIC_ADDRESS = "http://0.0.0.0:8889"
+    VATIC_ADDRESS = "http://172.16.22.51:8892"
 
+    vatic_path = "/root/vatic"
+    inside_cmd = 'cd {}; turkic list --detail'.format(vatic_path)
+    cmd = ['docker', 'exec', CONTAINER_NAME, "/bin/bash", '-c', inside_cmd]
 
-
+    print(" ".join(cmd))
+    call(cmd)
     user_map = json.load(open("vatic-docker/data/user_map.json"))
 
     assignments = get_assignments(user_map)
@@ -349,4 +355,4 @@ if __name__ == "__main__":
 
 
 
-    app.run(host='0.0.0.0',debug=True)
+    app.run(host='0.0.0.0',debug=True,threaded=True)

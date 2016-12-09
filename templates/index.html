@@ -20,7 +20,6 @@
 
 
   <body style="margin:16px; padding:16px">
-  <meta id="alerts" data-alerts="{{alerts}}" >
 
   <h1>Vatic Admin Prototype</h1>
 
@@ -36,19 +35,23 @@
 
 
 <div id="img-wrapper"  class="row">
-   <div class="col-md-6">
+   <div class="col-md-7">
   <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}   style="float:left" >
      </div>
-     <div id ="target-links" class="col-md-6">
+     <div id ="target-links" class="col-md-3" style="text-align:left;">
+       <h3 id='frame-num'><strong>{{frame_num}}</strong></h3>	
+       <br>
+
+       <ul class="list-group">
        {% for user, link in target_links %}
-       <a href={{link}}>{{user}}'s link</p>
+       <li class="list-group-item"><a href={{link}}><h4>{{user}}'s Segement</h4></a></li>
        {% endfor %}
+       </ul>
   </div>
 
 </div>
-  <p id='frame-num' >{{frame_num}}</p>
-<a id="next-button"><button> Next <span class="glyphicon glyphicon-forward"></span></button></a>
-<a id="previous-button"><button> Previous <span class="glyphicon glyphicon-backward"></span></button></a>
+<a id="next-button"><button class="btn btn-primary"> Next <span class="glyphicon glyphicon-forward"></span></button></a>
+<a id="previous-button"><button class="btn btn-danger"> Previous <span class="glyphicon glyphicon-backward"></span></button></a>
 <p id="alert-info">{{alert}}</p>
 </body>
 </html>
