@@ -14,6 +14,8 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 import requests
 from urllib import urlencode
 import json
+from operator import itemgetter
+from itertools import groupby
 
 
 
@@ -48,7 +50,7 @@ def get_urls():
 
 
 
-#!!!We assume there is only one video name in here!!!
+
 def get_target_links(video_name, frame_num, alert):
     N_segment = frame_num / K_FRAME
     OFFSET_segment = frame_num
@@ -102,6 +104,111 @@ def get_annotation_map(assignments):
         annotation_map[video_name][worker_name] = parse_txt(annotation_file)
 
     return annotation_map
+
+def get_boxID_map(alerts,annotation_map, workers):
+    box_ID_map = {}
+    for video_name in alerts:
+        box_ID_map[video_name] = {}
+        for frame in alerts[video_name]:
+            isolations = alerts[video_name][frame].get("isolation" ,[])
+            for worker_A, isolation in isolations.items():
+                for box_id_A, IOU_list in isolation.items():
+                    box_A = annotation_map[video_name][worker_A][frame][box_id_A].copy()
+                    box_A["matching"] = {}
+                    for worker in workers:
+                        if worker == worker_A:
+                            box_A["matching"][worker] = "owner"
+                        elif worker in IOU_list:
+                            box_A["matching"][worker] = "missing"
+                        else:
+                            box_A["matching"][worker] = "matched"
+                    new_box_id_A = "{}_{}".format(worker_A, box_id_A)
+                    if new_box_id_A not in box_ID_map[video_name]:
+                        box_ID_map[video_name][new_box_id_A] = {}
+            #print(new_box_id_A,frame)
+            box_ID_map[video_name][new_box_id_A][frame] = box_A
+
+    return box_ID_map
+
+
+def group_continuous_int(data, mark):
+    ranges = []
+    for k, g in groupby(enumerate(data), lambda (i,x):i-x):
+        group = map(itemgetter(1), g)
+        ranges.append((group[0], group[-1]))
+    return [(start, end, mark) for start, end in ranges if start != end]
+
+
+
+
+def group_errors(box_ID_map, workers):
+    errors = {}
+    get_user = lambda box_id: box_id[:box_id.find("_")]
+    #initalization
+    for video_name in box_ID_map:
+        errors[video_name] = {}
+        for worker in workers:
+            errors[video_name][worker] = {}
+            errors[video_name][worker]["missing"] = []
+            errors[video_name][worker]["surplus"] = []
+
+
+
+
+    for video_name in box_ID_map:
+
+        for worker in workers:
+
+            #Filling the "MISSING" field of the dictionary
+            for box_ID in box_ID_map[video_name]:
+                missings = []
+                for frame in  sorted(box_ID_map[video_name][box_ID].keys()):
+                    box = box_ID_map[video_name][box_ID][frame]
+                    status = box["matching"][worker]
+                    if status == "owner":
+                        break
+                    elif status == "missing":
+                        missings.append(frame)
+                error_missing = group_continuous_int(missings, box_ID)
+                errors[video_name][worker]["missing"] += error_missing
+                user_name = get_user(box_ID)
+                for error in error_missing:
+                    #print(error)
+                    #print(worker)
+                    error_surplus = list(error)
+                    error_surplus.append(worker)
+                    error_surplus = tuple(error_surplus)
+                    errors[video_name][user_name]["surplus"] += [error_surplus]
+
+    for video_name in box_ID_map:
+        for worker in workers:
+            errors[video_name][worker]["missing"] = sorted(errors[video_name][worker]["missing"], key=lambda x: x[0]-x[1])
+            errors[video_name][worker]["surplus"] = sorted(errors[video_name][worker]["surplus"], key=lambda x: x[0]-x[1])
+
+
+
+
+
+
+    return errors
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def get_alerts(annotation_map):
     alerts = {}
@@ -241,6 +348,31 @@ def get_first_alert_frame(video_name):
 
 
 
+
+@app.route('/seek')
+def seek_alert():
+    if request.method == 'GET':
+        video_name = request.args['video']
+        current_frame = int(request.args['frame'])
+        previous_frame = get_previous_alert_frame(video_name, current_frame)
+
+
+        img_url = get_img_url(video_name, previous_frame)
+        #dom = " <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}>"
+        alert=alerts[video_name].get(previous_frame ,[])
+        target_links = get_target_links(video_name, previous_frame, alert)
+
+
+
+
+        #response = render_template_string(dom, frame_num=frame_num, img_url=img_url)
+        #response = {"img_url": img_url, "frame_num": next_frame}
+    return jsonify(img_url=img_url, frame_num=previous_frame, alert=alert, target_links=target_links)
+
+
+
+
+
 @app.route('/previous')
 def previous_alert():
     if request.method == 'GET':
@@ -253,6 +385,7 @@ def previous_alert():
         #dom = " <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}>"
         alert=alerts[video_name].get(previous_frame ,[])
         target_links = get_target_links(video_name, previous_frame, alert)
+
 
 
 
@@ -294,6 +427,33 @@ def update():
     return redirect("./")
 
 
+@app.route('/report')
+def report():
+    videos = get_videos(user_map)
+
+    if "video_name" in request.args:
+        video_name = request.args['video_name']
+        videos.remove(video_name)
+        videos.insert(0, video_name)
+
+
+    else:
+        video_name = videos[0]
+
+    frame_num = get_first_alert_frame(video_name)
+    img_url = get_img_url(video_name, frame_num)
+    print(img_url)
+    alert = alerts[video_name].get(frame_num, [])
+    target_links = get_target_links(video_name, frame_num, alert)
+
+
+    return render_template('report.html', img_url=img_url, videos=videos,frame_num=frame_num,\
+        target_links=target_links, alert=alert, errors=errors, video_name=video_name)
+
+
+
+
+
 @app.route('/')
 def index():
     videos = get_videos(user_map)
@@ -314,8 +474,8 @@ def index():
     target_links = get_target_links(video_name, frame_num, alert)
 
 
-    return render_template('index.html', alerts=alerts, img_url=img_url, videos=videos,frame_num=frame_num,\
-        target_links=target_links, alert=alert)
+    return render_template('index.html', img_url=img_url, videos=videos,frame_num=frame_num,\
+        target_links=target_links, alert=alert, errors=errors, video_name=video_name)
 
 
 
@@ -328,7 +488,7 @@ def get_assignments(user_map):
     return assignments
 
 if __name__ == "__main__":
-    CONTAINER_NAME = "angry_hawking"
+    CONTAINER_NAME = "naughty_minsky"
     K_FRAME = 322
     VATIC_ADDRESS = "http://172.16.22.51:8892"
 
@@ -349,6 +509,8 @@ if __name__ == "__main__":
 
     workers = user_map.keys()
     color_map = get_color_map(workers)
+    box_ID_map  = get_boxID_map(alerts, annotation_map, workers)
+    errors = group_errors(box_ID_map, workers)
 
 
     #user_map = get_user_map()
