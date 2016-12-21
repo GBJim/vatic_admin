@@ -115,7 +115,7 @@ def get_boxID_map(alerts,annotation_map, workers):
     for video_name in alerts:
         box_ID_map[video_name] = {}
         for frame in alerts[video_name]:
-            isolations = alerts[video_name][frame].get("isolation" ,[])
+            isolations = alerts[video_name][frame].get("isolation" ,{})
             for worker_A, isolation in isolations.items():
                 for box_id_A, IOU_list in isolation.items():
                     box_A = annotation_map[video_name][worker_A][frame][box_id_A].copy()
@@ -494,7 +494,8 @@ def get_assignments(user_map):
     return assignments
 
 if __name__ == "__main__":
-    CONTAINER_NAME = "naughty_minsky"
+    #CONTAINER_NAME = "naughty_minsky"
+    CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
     OFFSET = 22
     VATIC_ADDRESS = "http://172.16.22.51:8892"
