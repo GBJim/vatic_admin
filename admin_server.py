@@ -52,10 +52,13 @@ def get_urls():
 
 
 def get_target_links(video_name, frame_num, alert):
+    links = []
+
+
     N_segment = frame_num / K_FRAME
     OFFSET_segment = frame_num
 
-    links = []
+
 
     #Ignore specific alert isolation_info
     for user in user_map:
@@ -63,18 +66,20 @@ def get_target_links(video_name, frame_num, alert):
 
         pivot = user_map[user][video_name][N_segment].find("?")
         #print(pivot)
-        base_link = "{}/{}".format(VATIC_ADDRESS, user_map[user][video_name][N_segment][pivot:])
 
-        final_link = "{}&frame={}".format(base_link, OFFSET_segment)
-        links.append((user, final_link))
+        if N_segment > 1 and frame_num % K_FRAME < OFFSET:
+            base_link = "{}/{}".format(VATIC_ADDRESS, user_map[user][video_name][N_segment-1][pivot:])
+            final_link = "{}&frame={}".format(base_link, OFFSET_segment)
+            links.append((user+'(A)', final_link))
+            base_link = "{}/{}".format(VATIC_ADDRESS, user_map[user][video_name][N_segment][pivot:])
+            final_link = "{}&frame={}".format(base_link, OFFSET_segment)
+            links.append((user+'(B)', final_link))
+
+        else:
+            base_link = "{}/{}".format(VATIC_ADDRESS, user_map[user][video_name][N_segment][pivot:])
+            final_link = "{}&frame={}".format(base_link, OFFSET_segment)
+            links.append((user, final_link))
     return links
-
-
-
-
-
-
-
 
 
 
@@ -126,7 +131,7 @@ def get_boxID_map(alerts,annotation_map, workers):
                     if new_box_id_A not in box_ID_map[video_name]:
                         box_ID_map[video_name][new_box_id_A] = {}
             #print(new_box_id_A,frame)
-            box_ID_map[video_name][new_box_id_A][frame] = box_A
+                    box_ID_map[video_name][new_box_id_A][frame] = box_A
 
     return box_ID_map
 
@@ -182,9 +187,10 @@ def group_errors(box_ID_map, workers):
 
     for video_name in box_ID_map:
         for worker in workers:
+            errors[video_name][worker]["mixed"] = errors[video_name][worker]["missing"] + errors[video_name][worker]["surplus"]
             errors[video_name][worker]["missing"] = sorted(errors[video_name][worker]["missing"], key=lambda x: x[0]-x[1])
             errors[video_name][worker]["surplus"] = sorted(errors[video_name][worker]["surplus"], key=lambda x: x[0]-x[1])
-
+            errors[video_name][worker]["mixed"] = sorted(errors[video_name][worker]["mixed"], key=lambda x: x[0]-x[1])
 
 
 
@@ -239,13 +245,13 @@ def visualize_frame(video_name, frame_num, boxes, output_dir="static/images"):
         y1 = box["ymin"]
         width = box["xmax"] - x1
         length = box["ymax"] - y1
-        label = box["source"]
+        label = "{}_{}".format(box["source"], box["id"])
         color = color_map[box["source"]]
         rectangle = plt.Rectangle((x1,y1), width,length, fill=False, edgecolor=color, linewidth=1)
         ax.add_patch(rectangle)
         ax.text(x1, y1 - 2, label,
                 bbox=dict(facecolor=color, alpha=0.5),
-                fontsize=6, color='white')
+                fontsize=10, color='white')
 
 
     plt.axis("off")
@@ -353,21 +359,21 @@ def get_first_alert_frame(video_name):
 def seek_alert():
     if request.method == 'GET':
         video_name = request.args['video']
-        current_frame = int(request.args['frame'])
-        previous_frame = get_previous_alert_frame(video_name, current_frame)
+
+        target_frame = int(request.args['frame'])
 
 
-        img_url = get_img_url(video_name, previous_frame)
+        img_url = get_img_url(video_name, target_frame)
         #dom = " <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}>"
-        alert=alerts[video_name].get(previous_frame ,[])
-        target_links = get_target_links(video_name, previous_frame, alert)
+        alert=alerts[video_name].get(target_frame ,[])
+        target_links = get_target_links(video_name, target_frame, alert)
 
 
 
 
         #response = render_template_string(dom, frame_num=frame_num, img_url=img_url)
         #response = {"img_url": img_url, "frame_num": next_frame}
-    return jsonify(img_url=img_url, frame_num=previous_frame, alert=alert, target_links=target_links)
+    return jsonify(img_url=img_url, frame_num=target_frame, alert=alert, target_links=target_links)
 
 
 
@@ -489,7 +495,8 @@ def get_assignments(user_map):
 
 if __name__ == "__main__":
     CONTAINER_NAME = "naughty_minsky"
-    K_FRAME = 322
+    K_FRAME = 300
+    OFFSET = 22
     VATIC_ADDRESS = "http://172.16.22.51:8892"
 
     vatic_path = "/root/vatic"
