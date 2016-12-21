@@ -9,9 +9,8 @@
   crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
 
-  <script src="static/index.js"></script>
+  <script src="static/report.js"></script>
 
 
 
@@ -23,101 +22,134 @@
 
   <body style="margin:16px; padding:16px">
 
-  <h1>Vatic Admin Prototype</h1>
+<h1>Vatic Admin Prototype 2.0</h1>
 
-  <div class="row">
-    <select id="video-selection" class="selectpicker" onChange="window.document.location.href=this.options[this.selectedIndex].value;">
-      {% for video in videos %}
-        <option value="/?video_name={{video}}">{{video}}</option>
-      {% endfor %}
-    </select>
-    <a href="update"><button type="button" class="btn btn-primary">Update <span class="glyphicon glyphicon-repeat"></button></a>
+
+<!--   Select Picker for Video and Update Button -->
+<div class="row">  <div class="row"></div>
+  <select id="video-selection" class="selectpicker" onChange="window.document.location.href=this.options[this.selectedIndex].value;">
+    {% for video in videos %}
+      <option value="/report?video_name={{video}}">{{video}}</option>
+    {% endfor %}
+  </select>
+  <a href="update"><button type="button" class="btn btn-primary">Update <span class="glyphicon glyphicon-repeat"></button></a>
+</div>
+<!--   End of Select Picker for Video and Update Button -->
+
+
+
+
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+
+
+<div id="main-row"  class="row">
+  <div class="col-md-6">
+    <h2 > <span class="label label-default"><strong>Frame:</strong> <strong id='frame-num'>{{frame_num}}</strong></span></h2>
+
+    <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}   style="float:left" >
+    <div class="row"></div>
+
+    <!--  Control Buttons -->
+    <div id="buttons">
+      <a id="next-button"><button class="btn btn-primary"> Next <span class="glyphicon glyphicon-arrow-right"></span></button></a>
+      <a id="previous-button"><button class="btn btn-success"> Previous <span class="glyphicon glyphicon-arrow-left"></span></button></a>
+      &nbsp;
+      &nbsp;
+      &nbsp;
+      &nbsp;
+      &nbsp;
+      <a id="play-button"><button class="btn btn-danger"> Play <span class="glyphicon glyphicon-play"></span></button></a>
+      <a id="stop-button"><button class="btn btn-warning"> Pause <span class="glyphicon glyphicon-pause"></span></button></a>
+      <a id="rewind-button"><button class="btn btn-info"> Rewind <span class="glyphicon glyphicon-backward"></span></button></a>
+    </div>
+    <!--  End of Control Buttons -->
+
+
+  <!--  Alert Info -->
+  <div id="alert-info">
+    <div id="wrong_number" class="col-md-3">
+    {% if "wrong_number" in alert %}  <div class="row"></div>
+        <h4>Wrong Number:</h4>
+        <ul id="w-list" class="list-group">
+        {% for user in alert["wrong_number"] %}
+          <li class="list-group-item">
+            <span class="badge">{{alert["wrong_number"][user]}}</span>
+            {{user}}
+          </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <div id="isolation" class="col-md-3">
+    {% if "isolation" in alert %}
+
+        <h4>Isolation:</h4>
+        <ul id="i-list" class="list-group">
+        {% for user in alert["isolation"] %}
+          <li class="list-group-item">
+            <span class="badge">{{alert["isolation"]|length}}</span>
+            {{user}}
+          </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
   </div>
+  <!--  End of Alert Info -->
+
+</div>
 
 
-
-<div id="img-wrapper"  class="row">
-   <div class="col-md-7">
-  <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}   style="float:left" >
-     </div>
-     <div  class="col-md-3" style="text-align:left;">
-       <h3 ><strong id='frame-num'>{{frame_num}}</strong></h3>
-       <br>
-
-       <ul id ="target-links" class="list-group">
-       {% for user, link in target_links %}
-       <li class="list-group-item"><a href={{link}}><h4>{{user}}'s Segment</h4></a></li>
-       {% endfor %}
+    <!--  Groupped Erros Info -->
+<div  id = "Errors-info "class="col-md-3">
+  <h2> <span class="label label-danger">Errors</span></h2>
+  {% for worker in errors[video_name] %}
+    <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class = "glyphicon glyphicon-collapse-down" /></h3></a>
+    <div id={{worker}} class="collapse" >
+      <ul class="list-group">
+        {%for error in errors[video_name][worker]["mixed"]%}
+          {% set box_id = error[2].split("_") %}
+          {% if error|length == 3 %}
+            <li class="list-group-item"><h3> <span class="label label-warning">少</span></h3><h4>  {{box_id[0]}}的box {{box_id[1]}}號  <a onclick='page_update_seek({{error[0]}})'>Frame {{error[0]}}</a>至 <a onclick='page_update_seek({{error[1]}})'>Frame {{error[1]}}</h4> </a><br></li>
+          {% elif error|length == 4 %}
+            <li class="list-group-item"><h3><span class="label label-info">多</span></h3><h4>比{{error[3]}}多了box {{box_id[1]}}號   <a onclick='page_update_seek({{error[0]}})'>Frame {{error[0]}}</a>至 <a  onclick='page_update_seek({{error[1]}})'>Frame {{error[1]}}</h4></a><br></li>
+          {%endif%}
+        {%endfor%}
        </ul>
-  </div>
-
+    </div>
+ {% endfor %}
 </div>
-<div class="row">
-<div class="col-md-2">
-<a id="next-button"><button class="btn btn-primary"> Next <span class="glyphicon glyphicon-arrow-right"></span></button></a>
-<a id="previous-button"><button class="btn btn-success"> Previous <span class="glyphicon glyphicon-arrow-left"></span></button></a>
+     <!--  End of Groupped Erros Info -->
+
+
+
+
+
+
+
+
+ <!-- Target Links -->
+
+<div  class="col-md-3" style="text-align:left;">
+  <br>
+  <ul id ="target-links" class="list-group">
+    {% for user, link in target_links %}
+      <li class="list-group-item"><a href={{link}}><h4>{{user}}'s Segment  <span class= "glyphicon glyphicon-hand-right" /> </h4></a></li>
+    {% endfor %}
+  </ul>
 </div>
-<div class="col-md-3">
-<a id="play-button"><button class="btn btn-danger"> Play <span class="glyphicon glyphicon-play"></span></button></a>
-<a id="stop-button"><button class="btn btn-warning"> Pause <span class="glyphicon glyphicon-pause"></span></button></a>
-<a id="rewind-button"><button class="btn btn-info"> Rewind <span class="glyphicon glyphicon-backward"></span></button></a>
 
-</div>
-</div>
-<div id="alert-info">
-
-  <div id="wrong_number" class="col-md-2">
-  {% if "wrong_number" in alert %}
-
-      <h4>Wrong Number:</h4>
-      <ul id="w-list" class="list-group">
-      {% for user in alert["wrong_number"] %}
-        <li class="list-group-item">
-
-          <span class="badge">{{alert["wrong_number"][user]}}</span>
-          {{user}}
-        </li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-
-  <div id="isolation" class="col-md-2">
-  {% if "isolation" in alert %}
-
-      <h4>Isolation:</h4>
-      <ul id="i-list" class="list-group">
-      {% for user in alert["isolation"] %}
-        <li class="list-group-item">
-
-          <span class="badge">{{alert["isolation"]|length}}</span>
-          {{user}}
-        </li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
+<!-- End of Target Links -->
 
 
 </div>
-<div>
-<canvas id="myChart" width="800" height="400"></canvas>
-</div>
-{% for worker in errors[video_name] %}
-  <h2>{{worker}}</h2>
-  <h3>少了</h3>
-  {%for error in errors[video_name][worker]["missing"]%}
-    {% set box_id = error[2].split("_") %}
-  {{box_id[0]}}的box {{box_id[1]}}號   Frame {{error[0]}}至 Frame{{error[1]}}<br>
-  {%endfor%}
 
-  <h3>多了</h3>
-  {%for error in errors[video_name][worker]["surplus"]%}
-    {% set box_id = error[2].split("_") %}
-  比{{error[3]}}多了的box {{box_id[1]}}號   Frame {{error[0]}}至 Frame{{error[1]}}<br>
-  {%endfor%}
 
-{% endfor %}
 
 
 
