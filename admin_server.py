@@ -430,6 +430,7 @@ def update():
     global alerts
     annotation_map = get_annotation_map(assignments)
     alerts = get_alerts(annotation_map)
+    
     return redirect("./")
 
 
@@ -478,6 +479,7 @@ def index():
     print(img_url)
     alert = alerts[video_name].get(frame_num, [])
     target_links = get_target_links(video_name, frame_num, alert)
+    errors = group_errors(box_ID_map, workers)
 
 
     return render_template('index.html', img_url=img_url, videos=videos,frame_num=frame_num,\
