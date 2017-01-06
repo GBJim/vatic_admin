@@ -114,16 +114,36 @@
   {% for worker in errors[video_name]|sort %}
     <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class = "glyphicon glyphicon-collapse-down" /></h3></a>
     <div id={{worker}} class="collapse" >
-      <ul class="list-group">
+
+      <table class="table table-hover">
+         <thead>
+           <tr>
+             <th>Type</th>
+             <th>Reference</th>
+             <th>Frame</th>
+             <th>Box</th>
+
+           </tr>
+         </thead>
+         <tbody>
         {%for error in errors[video_name][worker]["mixed"]%}
           {% set box_id = error[2].split("_") %}
           {% if error|length == 3 %}
-            <li class="list-group-item"><h3> <span class="label label-warning">少</span></h3><h4>  {{box_id[0]}}的box {{box_id[1]}}號  <a onclick='page_update_seek({{error[0]}})'>Frame {{error[0]}}</a>至 <a onclick='page_update_seek({{error[1]}})'>Frame {{error[1]}}</h4> </a><br></li>
+            <tr>
+              <td> <span class="label label-warning">少</span></td>
+              <td>{{box_id[0]}}</td>
+              <td><h4> <a onclick='page_update_seek({{error[0]}})'>{{error[0]*100}}</a> ➡ <a onclick='page_update_seek({{error[1]}})'>{{error[1]*100}}</h4></td>
+              <td>{{box_id[1]}}</td>
           {% elif error|length == 4 %}
-            <li class="list-group-item"><h3><span class="label label-info">多</span></h3><h4>比{{error[3]}}多了box {{box_id[1]}}號   <a onclick='page_update_seek({{error[0]}})'>Frame {{error[0]}}</a>至 <a  onclick='page_update_seek({{error[1]}})'>Frame {{error[1]}}</h4></a><br></li>
+            <td><span class="label label-info">多</span></td>
+            <td>{{error[3]}}</td>
+            <td><h4> <a onclick='page_update_seek({{error[0]}})'>{{error[0]*100}}</a> ➡ <a onclick='page_update_seek({{error[1]}})'>{{error[1]*100}}</h4></td>
+            <td>{{box_id[1]}}</td>
           {%endif%}
+        </tr>
         {%endfor%}
-       </ul>
+        </tbody>
+      </table>
     </div>
  {% endfor %}
 </div>
