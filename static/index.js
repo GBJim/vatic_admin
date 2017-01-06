@@ -73,7 +73,7 @@ function update_alert(alert){
 
 function page_update_seek(frame){
 
-  var video = $("#video-selection").val().slice(19);
+  var video = $("#video-selection").val().slice(13);
 
 
     $.ajax({
@@ -107,7 +107,7 @@ function page_update_seek(frame){
 
 function page_update(url){
   var frame = parseInt($('#alert-img').attr("frame-num"));
-  var video = $("#video-selection").val().slice(19);
+  var video = $("#video-selection").val().slice(13);
 
 
     $.ajax({

@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-  <script src="static/report.js"></script>
+  <script src="static/index.js"></script>
 
 
 
@@ -29,7 +29,7 @@
 <div class="row">  <div class="row"></div>
   <select id="video-selection" class="selectpicker" onChange="window.document.location.href=this.options[this.selectedIndex].value;">
     {% for video in videos %}
-      <option value="/report?video_name={{video}}">{{video}}</option>
+      <option value="/?video_name={{video}}">{{video}}</option>
     {% endfor %}
   </select>
   <a href="update"><button type="button" class="btn btn-primary">Update <span class="glyphicon glyphicon-repeat"></button></a>
@@ -108,7 +108,7 @@
     <!--  Groupped Erros Info -->
 <div  id = "Errors-info "class="col-md-3">
   <h2> <span class="label label-danger">Errors</span></h2>
-  {% for worker in errors[video_name] %}
+  {% for worker in errors[video_name]|sort %}
     <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class = "glyphicon glyphicon-collapse-down" /></h3></a>
     <div id={{worker}} class="collapse" >
       <ul class="list-group">

@@ -16,6 +16,7 @@ from urllib import urlencode
 import json
 from operator import itemgetter
 from itertools import groupby
+from collections import OrderedDict
 
 
 
@@ -61,7 +62,7 @@ def get_target_links(video_name, frame_num, alert):
 
 
     #Ignore specific alert isolation_info
-    for user in user_map:
+    for user in sorted(user_map):
 
 
         pivot = user_map[user][video_name][N_segment].find("?")
@@ -79,6 +80,7 @@ def get_target_links(video_name, frame_num, alert):
             base_link = "{}/{}".format(VATIC_ADDRESS, user_map[user][video_name][N_segment][pivot:])
             final_link = "{}&frame={}".format(base_link, OFFSET_segment)
             links.append((user, final_link))
+
     return links
 
 
@@ -196,7 +198,8 @@ def group_errors(box_ID_map, workers):
 
 
 
-    return errors
+    return OrderedDict(sorted(errors.items(), key= lambda x: x[0]))
+
 
 
 
@@ -432,30 +435,6 @@ def update():
     alerts = get_alerts(annotation_map)
 
     return redirect("./")
-
-
-@app.route('/report')
-def report():
-    videos = get_videos(user_map)
-
-    if "video_name" in request.args:
-        video_name = request.args['video_name']
-        videos.remove(video_name)
-        videos.insert(0, video_name)
-
-
-    else:
-        video_name = videos[0]
-
-    frame_num = get_first_alert_frame(video_name)
-    img_url = get_img_url(video_name, frame_num)
-    print(img_url)
-    alert = alerts[video_name].get(frame_num, [])
-    target_links = get_target_links(video_name, frame_num, alert)
-
-
-    return render_template('report.html', img_url=img_url, videos=videos,frame_num=frame_num,\
-        target_links=target_links, alert=alert, errors=errors, video_name=video_name)
 
 
 
