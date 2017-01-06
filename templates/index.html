@@ -75,7 +75,7 @@
     {% if "wrong_number" in alert %}  <div class="row"></div>
         <h4>Wrong Number:</h4>
         <ul id="w-list" class="list-group">
-        {% for user in alert["wrong_number"] %}
+        {% for user in alert["wrong_number"]|sort %}
           <li class="list-group-item">
             <span class="badge">{{alert["wrong_number"][user]}}</span>
             {{user}}
@@ -90,7 +90,7 @@
 
         <h4>Isolation:</h4>
         <ul id="i-list" class="list-group">
-        {% for user in alert["isolation"] %}
+        {% for user in alert["isolation"]|sort %}
           <li class="list-group-item">
             <span class="badge">{{alert["isolation"]|length}}</span>
             {{user}}
