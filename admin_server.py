@@ -190,7 +190,7 @@ def group_errors(box_ID_map, workers):
             errors[video_name][worker]["mixed"] = errors[video_name][worker]["missing"] + errors[video_name][worker]["surplus"]
             errors[video_name][worker]["missing"] = sorted(errors[video_name][worker]["missing"], key=lambda x: x[0]-x[1])
             errors[video_name][worker]["surplus"] = sorted(errors[video_name][worker]["surplus"], key=lambda x: x[0]-x[1])
-            errors[video_name][worker]["mixed"] = sorted(errors[video_name][worker]["mixed"], key=lambda x: x[0]-x[1])
+            errors[video_name][worker]["mixed"] = sorted(errors[video_name][worker]["mixed"], key=lambda x: x[0])
 
 
 
@@ -430,7 +430,7 @@ def update():
     global alerts
     annotation_map = get_annotation_map(assignments)
     alerts = get_alerts(annotation_map)
-    
+
     return redirect("./")
 
 
@@ -496,8 +496,8 @@ def get_assignments(user_map):
     return assignments
 
 if __name__ == "__main__":
-    #CONTAINER_NAME = "naughty_minsky"
-    CONTAINER_NAME = "angry_hawking"
+    CONTAINER_NAME = "naughty_minsky"
+    #CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
     OFFSET = 22
     VATIC_ADDRESS = "http://172.16.22.51:8892"
