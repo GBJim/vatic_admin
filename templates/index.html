@@ -11,6 +11,8 @@
  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
   <script src="static/index.js"></script>
+  <link  rel= "stylesheet" href="static/index.css"</script>
+
 
 
 
@@ -47,10 +49,11 @@
 
 
 <div id="main-row"  class="row">
-  <div class="col-md-6">
+  <div class="col-md-6" >
+  <div data-spy="affix" data-offset-top="50">
     <h2 > <span class="label label-default"><strong>Frame:</strong> <strong id='frame-num'>{{frame_num}}</strong></span></h2>
 
-    <img  id='alert-img' frame-num={{frame_num}} src={{img_url}}   style="float:left" >
+    <img  id='alert-img'  frame-num={{frame_num}} src={{img_url}}   style="float:left" >
     <div class="row"></div>
 
     <!--  Control Buttons -->
@@ -101,7 +104,7 @@
     </div>
   </div>
   <!--  End of Alert Info -->
-
+</div>
 </div>
 
 
@@ -136,12 +139,15 @@
  <!-- Target Links -->
 
 <div  class="col-md-3" style="text-align:left;">
+<div data-spy="affix" data-offset-top="50">
+
   <br>
   <ul id ="target-links" class="list-group">
     {% for user, link in target_links %}
       <li class="list-group-item"><a href={{link}}><h4>{{user}}'s Segment  <span class= "glyphicon glyphicon-hand-right" /> </h4></a></li>
     {% endfor %}
   </ul>
+</div>
 </div>
 
 <!-- End of Target Links -->
