@@ -112,7 +112,7 @@
 <div  id = "Errors-info "class="col-md-3">
   <h2> <span class="label label-danger">Errors</span></h2>
   {% for worker in errors[video_name]|sort %}
-    <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class = "glyphicon glyphicon-collapse-down" /></h3></a>
+    <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class="badge">{{errors[video_name][worker]["mixed"]|length}}</span>               <span class = "glyphicon glyphicon-collapse-down" /></h3> </a>
     <div id={{worker}} class="collapse" >
 
       <table class="table table-hover">
