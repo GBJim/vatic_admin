@@ -481,7 +481,7 @@ if __name__ == "__main__":
     #CONTAINER_NAME = "naughty_minsky"
     CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
-    OFFSET = 22
+    OFFSET = 21
     VATIC_ADDRESS = "http://172.16.22.51:8892"
 
     vatic_path = "/root/vatic"
