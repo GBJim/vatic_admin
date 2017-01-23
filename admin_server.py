@@ -428,9 +428,12 @@ def next_alert():
 
 @app.route('/update')
 def update():
+    assignments = get_assignments(user_map)
     dump_data(assignments)
     global annotation_map
     global alerts
+    global errors
+
     annotation_map = get_annotation_map(assignments)
     alerts = get_alerts(annotation_map)
     box_ID_map  = get_boxID_map(alerts, annotation_map, workers)
@@ -445,6 +448,7 @@ def update():
 
 @app.route('/')
 def index():
+    global errors
     videos = get_videos(user_map)
 
     if "video_name" in request.args:
