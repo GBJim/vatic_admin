@@ -181,6 +181,48 @@ play_ID = 0;
 rewind_ID = 0;
 
 
+function check_fire(error_data){
+
+  console.log(error_data);
+  $.ajax({
+     url: "/box_check",
+     type: 'GET',
+     data: error_data
+           });
+
+}
+
+
+
+function box_events(){
+  /*
+  video = $(this).data("video");
+  master = $(this).data("master");
+  reference = $(this).data("reference");
+  type = $(this).data("type");
+  begin = $(this).data("begin");
+  end = $(this).data("end");
+  box_id = $(this).data("id");
+
+
+  error_data = {"video":video, "master":master, "reference": reference,"box_id":box_id, "type":type, "begin":begin,"end":end}
+  */
+  error_id = $(this).data("error");
+  error_data = {"id": error_id};
+
+
+
+  if($(this).is(":checked")){
+    error_data["action"] = "insert"
+    check_fire(error_data);
+  }
+  else {
+    error_data["action"] = "remove"
+    check_fire(error_data);
+
+  }
+}
+
 $(function() {
 
     $('#next-button').click(next_update);
@@ -188,6 +230,9 @@ $(function() {
     $('#play-button').click(play);
     $('#rewind-button').click(rewind);
     $('#stop-button').click(stop)
+    $("input:checkbox").change(box_events);
+
+
 
 
 })

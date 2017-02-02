@@ -17,7 +17,7 @@ import json
 from operator import itemgetter
 from itertools import groupby
 from collections import OrderedDict
-
+from tinydb import TinyDB, Query
 
 
 
@@ -199,24 +199,6 @@ def group_errors(box_ID_map, workers):
 
 
     return OrderedDict(sorted(errors.items(), key= lambda x: x[0]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def get_alerts(annotation_map):
@@ -449,6 +431,7 @@ def update():
 @app.route('/')
 def index():
     global errors
+    global check_box_DB
     videos = get_videos(user_map)
 
     if "video_name" in request.args:
@@ -465,11 +448,14 @@ def index():
     print(img_url)
     alert = alerts[video_name].get(frame_num, [])
     target_links = get_target_links(video_name, frame_num, alert)
-
+    check_boxes = {}
+    for error_data in check_box_DB.all():
+        error_id = error_data["error_id"]
+        check_boxes[error_id] = 1
 
 
     return render_template('index.html', img_url=img_url, videos=videos,frame_num=frame_num,\
-        target_links=target_links, alert=alert, errors=errors, video_name=video_name)
+        target_links=target_links, alert=alert, errors=errors, video_name=video_name, check_boxes=check_boxes)
 
 
 
@@ -481,9 +467,58 @@ def get_assignments(user_map):
             assignments.append(assignment)
     return assignments
 
+@app.route('/box_check')
+def box_check():
+    global check_box_DB
+    if request.method == 'GET':
+        '''
+        video = request.args['video']
+        master = request.args['master']
+        reference = request.args['reference']
+        begin = request.args['begin']
+        end = request.args['end']
+        box_id = request.args['box_id']
+        box_type = request.args['type']
+        '''
+        error_id = request.args['id']
+        action = request.args['action']
+
+
+
+        if action == "insert":
+            check_box_DB.insert({"error_id":error_id})
+            print("Insert {} into DB".format(error_id))
+            return jsonify(condition="successfully insert")
+
+        elif action == "remove":
+            query = Query()
+            check_box_DB.remove(query.error_id==error_id)
+            print("Remove {} from DB".format(error_id))
+
+            return jsonify(condition="successfully remove")
+
+
+
+
+
+
+
+
+
+
+
+
+
+@app.route('/uncheck')
+def box_uncheck():
+    pass
+
+
+
+
 if __name__ == "__main__":
-    #CONTAINER_NAME = "naughty_minsky"
-    CONTAINER_NAME = "angry_hawking"
+    CONTAINER_NAME = "naughty_minsky"
+    #CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
     OFFSET = 21
     VATIC_ADDRESS = "http://172.16.22.51:8892"
@@ -507,6 +542,8 @@ if __name__ == "__main__":
     color_map = get_color_map(workers)
     box_ID_map  = get_boxID_map(alerts, annotation_map, workers)
     errors = group_errors(box_ID_map, workers)
+
+    check_box_DB =  TinyDB("check_box_db.json")
 
 
     #user_map = get_user_map()
