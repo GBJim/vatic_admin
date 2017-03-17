@@ -70,7 +70,7 @@ function update_alert(alert){
 
 
 
-
+/*
 function page_update_seek(frame){
 
   var video = $("#video-selection").val().slice(13);
@@ -81,14 +81,11 @@ function page_update_seek(frame){
         data:  {"frame":frame, "video":video},
         type: 'GET',
         success: function(response) {
+
+
           //console.log(response);
-            var img = new Image();
-            img.src = response["img_url"];
-            img.onload = function(  ){
- $("#alert-img").attr("src", img.src);
- $("#alert-img").attr("frame-num", response["frame_num"]);
- //console.log(response);
-}
+          render_image(frame, video);
+
  $("#frame-num").html(response["frame_num"]);
 
  update_alert(response["alert"]);
@@ -102,29 +99,28 @@ function page_update_seek(frame){
     });
 
 
-}
+}*/
+
+
 
 
 function page_update(url){
-  var frame = parseInt($('#alert-img').attr("frame-num"));
+  var frame = $("#frame-num").html();
+
   var video = $("#video-selection").val().slice(13);
 
 
     $.ajax({
         url: url,
+
         data:  {"frame":frame, "video":video},
         type: 'GET',
         success: function(response) {
-          //console.log(response);
-            var img = new Image();
-            img.src = response["img_url"];
-            img.onload = function(  ){
- $("#alert-img").attr("src", img.src);
- $("#alert-img").attr("frame-num", response["frame_num"]);
- //console.log(response);
-}
- $("#frame-num").html(response["frame_num"]);
+          console.log(response);
 
+          render_image(response["frame_num"], video);
+
+ $("#frame-num").html(response["frame_num"]);
  update_alert(response["alert"]);
  change_links(response["target_links"]);
 
@@ -223,7 +219,95 @@ function box_events(){
   }
 }
 
+
+
+
+
+
+function render_boxes(boxes, svg){
+
+
+
+
+
+
+
+
+           var num = boxes.length;
+           for(var i = 0; i < num; i++) {
+             var box = boxes[i];
+
+             var box_group = svg.append("g").attr("class", "box").attr("id", box["source"] + "-" + box["id"]);
+
+
+
+             box_group.append("rect")
+             .attr("x", box['xmin'])
+             .attr("y", box['ymin'])
+             .attr("width", box['xmax'] - box['xmin'])
+             .attr("height", box['ymax'] - box['ymin'])
+             .style("stroke","red")
+             .style("fill", "none");
+
+             box_group.append("text")
+                .attr("x", box['xmin'])
+                .attr("y", box['ymin'] - 5)
+                .text(box["source"] + "-" + box["id"])
+                .attr("font-size", "10px")
+                .attr("fill", "white");
+
+
+
+
+
+
+             }
+
+
+
+
+}
+
+
+
+
+
+function render_image(frame, video){
+
+
+
+
+
+    var params = { frame:frame, video:video };
+    var img_url = "/image?" + jQuery.param(params);
+    console.log(img_url)
+      var svg = d3.select("#alert-svg");
+
+      svg.append("image")
+      .attr("xlink:href", img_url)
+      .attr("x", "0")
+      .attr("y", "0");
+
+
+
+       $.ajax({
+           url:"/alert_boxes" ,
+           data:  {"frame":frame, "video":video},
+           type: 'GET',
+           success: function(response) {
+             //console.log(response);
+
+             render_boxes(response, svg)
+
+           },
+           error: function(error) {
+               console.log(error);
+
+           }
+       });
+     }
 $(function() {
+
 
     $('#next-button').click(next_update);
     $('#previous-button').click(previous_update);
@@ -231,6 +315,11 @@ $(function() {
     $('#rewind-button').click(rewind);
     $('#stop-button').click(stop)
     $("input:checkbox").change(box_events);
+
+    var frame = parseInt($('#alert-svg').attr("frame-num"));
+    var video = $("#video-selection").val().slice(13);
+
+    render_image(frame, video);
 
 
 

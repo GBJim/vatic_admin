@@ -18,7 +18,7 @@ from operator import itemgetter
 from itertools import groupby
 from collections import OrderedDict
 from tinydb import TinyDB, Query
-
+from PIL import Image
 
 
 #list_videos_cmd = "docker exec amazing_booth /bin/sh -c 'cd /root/vatic; turkic list'"
@@ -217,14 +217,11 @@ def frame_to_path(video_name, frame_num, img_path="vatic-docker/data/frames_in")
     return path
 
 
-def visualize_frame(video_name, frame_num, boxes, output_dir="static/images"):
+def visualize_frame(video_name, frame_num):
     im_path = frame_to_path(video_name, frame_num)
-    img = imread(im_path)
-    #output_path = os.path.join(output_dir, "999.jpg")
-    fig, ax = plt.subplots(1)
-    plt.imshow(img)
-    #plt.show()
+    im = Image.open(im_path)
 
+    '''
     for box in boxes:
         x1 = box["xmin"]
         y1 = box["ymin"]
@@ -232,18 +229,11 @@ def visualize_frame(video_name, frame_num, boxes, output_dir="static/images"):
         length = box["ymax"] - y1
         label = "{}_{}".format(box["source"], box["id"])
         color = color_map[box["source"]]
-        rectangle = plt.Rectangle((x1,y1), width,length, fill=False, edgecolor=color, linewidth=1)
-        ax.add_patch(rectangle)
-        ax.text(x1, y1 - 2, label,
-                bbox=dict(facecolor=color, alpha=0.5),
-                fontsize=10, color='white')
+    '''
 
-
-    plt.axis("off")
-    #plt.show()
 
     buf = cStringIO.StringIO()
-    plt.savefig(buf, bbox_inches='tight',pad_inches=0)
+    im.save(buf, format="JPEG")
     img = buf.getvalue()
     #plt.savefig(output_path)
     return img
@@ -260,27 +250,6 @@ def get_color_map(workers):
 
 
 
-def get_alert_boxes(video_name, frame_num):
-
-    alert_boxes = []
-    if frame_num in alerts[video_name]:
-        isolation_info = alerts[video_name][frame_num]["isolation"]
-    else:
-        return []
-
-    for worker, worker_isolation_info  in isolation_info.items():
-        for objID, bad_matchings in worker_isolation_info.items():
-            alert_box = annotation_map[video_name][worker][frame_num][objID].copy()
-
-            alert_box["source"] = worker
-            alert_box["id"] = objID
-            alert_box["bad_matchings"] = bad_matchings
-
-
-            alert_boxes.append(alert_box)
-    return alert_boxes
-
-
 
 
 def get_img_url(video_name, frame_num, base_url = "/image"):
@@ -290,16 +259,62 @@ def get_img_url(video_name, frame_num, base_url = "/image"):
 
 app = Flask(__name__)
 
+
+
+
+
+
+
+
+
+
+
+@app.route("/alert_boxes")
+def get_alert_boxes():
+    if request.method == 'GET':
+        video_name = request.args['video']
+        frame_num = int(request.args['frame'])
+
+        alert_boxes = []
+        if frame_num in alerts[video_name]:
+            isolation_info = alerts[video_name][frame_num]["isolation"]
+        else:
+            return jsonify({})
+
+        for worker, worker_isolation_info  in isolation_info.items():
+            for objID, bad_matchings in worker_isolation_info.items():
+                alert_box = annotation_map[video_name][worker][frame_num][objID].copy()
+
+                alert_box["source"] = worker
+                alert_box["id"] = objID
+                alert_box["bad_matchings"] = bad_matchings
+
+
+                alert_boxes.append(alert_box)
+        return jsonify(alert_boxes)
+
+
+
+
+    else:
+        return "Something is wrong with get_alert_boxes ;)"
+
+
+
+
+
+
+
 @app.route('/image')
 def serve_image():
     #return "YoYO!"
     if request.method == 'GET':
-        video_name = request.args['video_name']
-        frame_num = int(request.args['frame_num'])
+        video_name = request.args['video']
+        frame_num = int(request.args['frame'])
 
-        boxes = get_alert_boxes(video_name, frame_num)
+        #boxes = get_alert_boxes(video_name, frame_num)
 
-        img = visualize_frame(video_name, frame_num, boxes)
+        img = visualize_frame(video_name, frame_num)
         response = make_response(img)
         response.content_type = "image/jpeg"
         return response
@@ -517,7 +532,7 @@ def box_uncheck():
 
 
 if __name__ == "__main__":
-    CONTAINER_NAME = "naughty_minsky"
+    CONTAINER_NAME = "vatic"
     #CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
     OFFSET = 21
