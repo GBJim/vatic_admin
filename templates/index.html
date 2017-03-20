@@ -55,7 +55,7 @@
     <h2 > <span class="label label-default"><strong>Frame:</strong> <strong id='frame-num'>{{frame_num}}</strong></span></h2>
     <svg id = "alert-svg" frame-num="{{frame_num}}" width=640 height=360>
 
-      
+
 
 
     <div class="row"></div>
@@ -116,7 +116,7 @@
 <div  id = "Errors-info "class="col-md-3">
   <h2> <span class="label label-danger">Errors</span></h2>
   {% for worker in errors[video_name]|sort %}
-    <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class="badge">{{errors[video_name][worker]["mixed"]|length}}</span>               <span class = "glyphicon glyphicon-collapse-down" /></h3> </a>
+    <a href='#'  data-toggle="collapse" data-target="#{{worker}}" ><h3>{{worker}} <span class="badge">{{errors[video_name][worker]|length}}</span>               <span class = "glyphicon glyphicon-collapse-down" /></h3> </a>
     <div id={{worker}} class="collapse" >
 
       <table class="table table-hover">
@@ -131,46 +131,31 @@
            </tr>
          </thead>
          <tbody>
-        {%for error in errors[video_name][worker]["mixed"]%}
-          {% set box_id = error[2].split("_") %}
-          {% if error|length == 3 %}
+        {%for error in errors[video_name][worker]%}
+
             <tr>
+          {% if error["type"] == "missing"%}
               <td> <span class="label label-warning">少</span></td>
-              <td>{{box_id[0]}}</td>
-              <td><h4> <a onclick='page_update_seek({{error[0]}})'>{{error[0]}}</a> ➡ <a onclick='page_update_seek({{error[1]}})'>{{error[1]}}</h4></td>
-              <td>{{box_id[1]}}</td>
-              {%set error_id=[video_name, worker, box_id[0], box_id[1], "less", error[0], error[1]]|join("\t")%}
+          {%elif error["type"] == "surplus"%}
+              <td><span class="label label-info">多</span></td>
+          {%endif%}
+              <td>{{error["reference"]}}</td>
+              <td><h4> <a onclick='page_update_seek({{error["start"]}})'>{{error["start"]}}</a> ➡ <a onclick='page_update_seek({{error["end"]}})'>{{error["end"]}}</h4></td>
+              <td>{{error["box_id"]}}</td>
+              {%set error_id=[video_name, worker, error["reference"], error["box_id"], error["type"], error["start"], error["end"]]|join("\t")%}
 
               <td>
                 <div class="checkbox">
                   {%if error_id in check_boxes%}
-                    <label><input type="checkbox" checked data-error="{{error_id}}" data-video={{video_name}} data-master={{worker}} data-reference={{box_id[0]}}  data-id={{box_id[1]}} data-type="less" data-begin={{error[0]}} data-end={{error[1]}}></label>
+                    <label><input type="checkbox" checked data-error="{{error_id}}" data-video={{video_name}} data-master={{worker}} data-reference={{error["reference"]}}  data-id={{error["box_id"]}} data-type={{error["type"]}} data-begin={{error["start"]}} data-end={{error["end"]}}></label>
                   {%else%}
-                    <label><input type="checkbox" data-error="{{error_id}}" data-video={{video_name}} data-master={{worker}} data-reference={{box_id[0]}}  data-id={{box_id[1]}} data-type="less" data-begin={{error[0]}} data-end={{error[1]}}></label>
+                    <label><input type="checkbox" data-error="{{error_id}}" data-video={{video_name}} data-master={{worker}} data-reference={{error["reference"]}}  data-id={{error["box_id"]}} data-type={{error["type"]}} data-begin={{error["start"]}} data-end={{error["end"]}}></label>
                   {%endif%}
                 </div>
               </td>
 
-          {% elif error|length == 4 %}
-            <td><span class="label label-info">多</span></td>
-            <td>{{error[3]}}</td>
-            <td><h4> <a onclick='page_update_seek({{error[0]}})'>{{error[0]}}</a> ➡ <a onclick='page_update_seek({{error[1]}})'>{{error[1]}}</h4></td>
-            <td>{{box_id[1]}}</td>
-            <td>
-              {% set error_id = [video_name, worker, error[3], box_id[1], "more", error[0], error[1]]|join("\t") %}
-
-              <div class="checkbox">
-                {%if error_id in check_boxes%}
-                  <label><input type="checkbox" checked data-error="{{error_id}}" data-video={{video_name}} data-master={{worker}} data-reference={{error[3]}} data-id={{box_id[1]}} data-type="more" data-begin={{error[0]}} data-end={{error[1]}}  ></label>
-                {% else %}
-                  <label><input type="checkbox" data-error="{{error_id}}" data-video={{video_name}} data-master={{worker}} data-reference={{error[3]}} data-id={{box_id[1]}} data-type="more" data-begin={{error[0]}} data-end={{error[1]}}  ></label>
-
-                {%endif%}
-              </div>
-            </td>
-          {%endif%}
         </tr>
-        {%endfor%}
+        {%  endfor %}
         </tbody>
       </table>
     </div>

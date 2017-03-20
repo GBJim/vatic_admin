@@ -187,18 +187,37 @@ def group_errors(box_ID_map, workers):
                     error_surplus = tuple(error_surplus)
                     errors[video_name][user_name]["surplus"] += [error_surplus]
 
+    normalized_errors = {}
     for video_name in box_ID_map:
+        normalized_errors[video_name] = {}
         for worker in workers:
             errors[video_name][worker]["mixed"] = errors[video_name][worker]["missing"] + errors[video_name][worker]["surplus"]
             errors[video_name][worker]["missing"] = sorted(errors[video_name][worker]["missing"], key=lambda x: x[0]-x[1])
             errors[video_name][worker]["surplus"] = sorted(errors[video_name][worker]["surplus"], key=lambda x: x[0]-x[1])
             errors[video_name][worker]["mixed"] = sorted(errors[video_name][worker]["mixed"], key=lambda x: x[0])
+            normalized_errors[video_name][worker] = []
+            for i, error in  enumerate(errors[video_name][worker]["mixed"]):
+                if len(error) == 3:
+                    error_type = "missing"
+                    reference, box_id = error[2].split("_")
+                    start = error[0]
+                    end = error[1]
+
+                elif len(error) == 4:
+                    error_type = "surplus"
+                    reference = error[3]
+                    box_id = error[2].split("_")[1]
+                    start = error[0]
+                    end = error[1]
+
+                normalized_error = {"type":error_type, "reference":reference, "start":start, "end":end, "box_id":box_id}
+                normalized_errors[video_name][worker].append(normalized_error)
 
 
 
 
 
-    return OrderedDict(sorted(errors.items(), key= lambda x: x[0]))
+    return OrderedDict(sorted(normalized_errors.items(), key= lambda x: x[0]))
 
 
 def get_alerts(annotation_map):
@@ -536,7 +555,7 @@ if __name__ == "__main__":
     #CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
     OFFSET = 21
-    VATIC_ADDRESS = "http://172.16.22.51:8892"
+    VATIC_ADDRESS = "http://0.0.0.0:8892"
 
     vatic_path = "/root/vatic"
     inside_cmd = 'cd {}; turkic list --detail'.format(vatic_path)

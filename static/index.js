@@ -70,7 +70,7 @@ function update_alert(alert){
 
 
 
-/*
+
 function page_update_seek(frame){
 
   var video = $("#video-selection").val().slice(13);
@@ -84,7 +84,7 @@ function page_update_seek(frame){
 
 
           //console.log(response);
-          render_image(frame, video);
+          render_image(response["frame_num"], video);
 
  $("#frame-num").html(response["frame_num"]);
 
@@ -99,7 +99,7 @@ function page_update_seek(frame){
     });
 
 
-}*/
+}
 
 
 
