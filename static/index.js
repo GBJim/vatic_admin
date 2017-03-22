@@ -84,7 +84,7 @@ function page_update_seek(frame){
 
 
           //console.log(response);
-          render_image(response["frame_num"], video);
+          render_image(frame, video);
 
  $("#frame-num").html(response["frame_num"]);
 
@@ -232,7 +232,7 @@ function render_boxes(boxes, svg){
 
 
 
-
+           d3.selectAll("g.box").remove();
            var num = boxes.length;
            for(var i = 0; i < num; i++) {
              var box = boxes[i];
@@ -246,16 +246,27 @@ function render_boxes(boxes, svg){
              .attr("y", box['ymin'])
              .attr("width", box['xmax'] - box['xmin'])
              .attr("height", box['ymax'] - box['ymin'])
-             .style("stroke","red")
+             .style("stroke",color_map[box["source"]])
+             .style("stroke-width",3)
              .style("fill", "none");
+
+
+
+             box_group.append("rect")
+                .attr("x", box['xmin']-2)
+                .attr("y", box['ymin'] - 17)
+                .attr("width", 7.5*(box["source"] + "-" + box["id"]).length + 0.5)
+                .attr("height", 15)
+                .attr("fill", color_map[box["source"]])
+                .style("opacity", 0.6);
+
 
              box_group.append("text")
                 .attr("x", box['xmin'])
                 .attr("y", box['ymin'] - 5)
                 .text(box["source"] + "-" + box["id"])
-                .attr("font-size", "10px")
+                .attr("font-size", "14px")
                 .attr("fill", "white");
-
 
 
 
@@ -268,6 +279,41 @@ function render_boxes(boxes, svg){
 
 }
 
+
+
+
+function highlight_box(box_id){
+  d3.selectAll(".box").style("opacity", 0);
+  d3.select("#"+box_id).style("opacity",1);
+  console.log(box_id);
+
+}
+
+
+function show_all_box(box_id){
+  d3.selectAll(".box").style("opacity", 1);
+
+
+}
+
+
+
+
+function get_color_map(){
+  var color_map = {};
+  var meta_tags = $("meta");
+  var num = meta_tags.length;
+  for (i=0; i<num; i++){
+    color_map[meta_tags[i].name] = meta_tags[i].content;
+
+  }
+  return color_map
+
+
+
+
+
+}
 
 
 
@@ -306,8 +352,10 @@ function render_image(frame, video){
            }
        });
      }
-$(function() {
 
+
+$(function() {
+    color_map = get_color_map();
 
     $('#next-button').click(next_update);
     $('#previous-button').click(previous_update);
@@ -319,7 +367,27 @@ $(function() {
     var frame = parseInt($('#alert-svg').attr("frame-num"));
     var video = $("#video-selection").val().slice(13);
 
+
+
+
     render_image(frame, video);
+
+
+    $("tr").not(':first').hover(
+  function () {
+  console.log(this.getAttribute("box-id"));
+  highlight_box(this.getAttribute("box-id"));
+  },
+  function () {
+    show_all_box();
+  }
+);
+
+
+
+
+
+
 
 
 

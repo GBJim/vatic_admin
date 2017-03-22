@@ -25,7 +25,15 @@ from PIL import Image
 
 
 def get_videos(user_map):
-    return user_map.values()[0].keys()
+    #Filter out only the video has unique follower
+    target_videos = set(user_map.values()[0].keys())
+
+
+    for user in user_map:
+
+        target_videos = target_videos.intersection(set(user_map[user].keys()))
+    return list(target_videos)
+    #return user_map.values()[0].keys()
 
 
 
@@ -259,7 +267,7 @@ def visualize_frame(video_name, frame_num):
 
 
 def get_color_map(workers):
-    colors = ["r", "g", "b", "y", "w", "p", "o"]
+    colors = ["red", "green", "blue", "yellow", "white", "pink", "orange"]
     color_map = {}
 
     for i, worker in enumerate(sorted(workers)):
@@ -489,14 +497,18 @@ def index():
 
 
     return render_template('index.html', img_url=img_url, videos=videos,frame_num=frame_num,\
-        target_links=target_links, alert=alert, errors=errors, video_name=video_name, check_boxes=check_boxes)
+        target_links=target_links, alert=alert, errors=errors, video_name=video_name, check_boxes=check_boxes, color_map=color_map)
 
 
 
 def get_assignments(user_map):
+    #Filter
+
     assignments = []
     for user in user_map:
+
         for video in user_map[user]:
+
             assignment = "{}_{}".format(user, video)
             assignments.append(assignment)
     return assignments
@@ -532,22 +544,7 @@ def box_check():
             return jsonify(condition="successfully remove")
 
 
-
-
-
-
-
-
-
-
-
-
-
-@app.route('/uncheck')
-def box_uncheck():
-    pass
-
-
+\
 
 
 if __name__ == "__main__":
