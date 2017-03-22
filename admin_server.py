@@ -21,11 +21,18 @@ from tinydb import TinyDB, Query
 
 
 
-#list_videos_cmd = "docker exec amazing_booth /bin/sh -c 'cd /root/vatic; turkic list'"
 
 
 def get_videos(user_map):
-    return user_map.values()[0].keys()
+    return ["chruch_street_2.mpeg","big_city.mp4", "Yu-DA_Campus.mp4"]
+    target_videos = set(user_map.values()[0].keys())
+
+
+    for user in user_map:
+
+        target_videos = target_videos.intersection(set(user_map[user].keys()))
+   
+    return list(target_videos)  
 
 
 
@@ -64,7 +71,8 @@ def get_target_links(video_name, frame_num, alert):
     #Ignore specific alert isolation_info
     for user in sorted(user_map):
 
-
+	if video_name not in user_map[user]:
+		continue
         pivot = user_map[user][video_name][N_segment].find("?")
         #print(pivot)
 
@@ -517,8 +525,8 @@ def box_uncheck():
 
 
 if __name__ == "__main__":
-    CONTAINER_NAME = "naughty_minsky"
-    #CONTAINER_NAME = "angry_hawking"
+    #CONTAINER_NAME = "naughty_minsky"
+    CONTAINER_NAME = "angry_hawking"
     K_FRAME = 300
     OFFSET = 21
     VATIC_ADDRESS = "http://172.16.22.51:8892"
